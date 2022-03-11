@@ -79,7 +79,7 @@ P = [
 ]
 
 # The reverse permutation of P
-inv_P = [
+rev_P = [
     9, 17, 23, 31,
     13, 28, 2, 18,
     24, 16, 30, 6,
@@ -225,7 +225,7 @@ def initial_permutation(cipher):
 
 def perm(val):
     '''
-    Permutates the bits of the integer in parameter according to P table.
+    Permutates the bits of the integer in parameter according to P table (in DES F function).
 
     Args:
         val (string) : A string representing the binary value of an 32 bits integer (without the 0b).
@@ -245,7 +245,7 @@ def perm(val):
     return res
 
 
-def inv_perm(val):
+def rev_perm(val):
     '''
     Reverse the permutation P in DES F function.
 
@@ -262,8 +262,30 @@ def inv_perm(val):
         raise Exception('The parameter must represent a 32 bits integer. Provided represented a ' + str(len(val)) + ' bits integer.')
     
     res = ''
-    for bit in inv_P:
+    for bit in rev_P:
         res += val[bit - 1]
+    return res
+
+
+def initial_perm(cipher):
+    '''
+    Calculates the initial permutation with the IP table.
+
+    Args:
+        cipher (string) : A string representing a 64 bits integer value in binary (without 0b).
+    
+    Raises:
+        Exception : If the parameter is not a 64 bits value.
+
+    Returns:
+        string : The permuted provided string.
+    '''
+    if len(cipher) != 64:
+        raise Exception('The parameter must be a 64 bits value. Provided was a ' + str(len(cipher) - 2) * 4 + ' bits value.')
+    
+    res = ''
+    for bit in IP:
+        res += cipher[bit - 1]
     return res
 
 
@@ -274,6 +296,9 @@ def get_R16_L16(cipher):
     Args:
         cipher (hex) : The final ciphertext in hexadecimal.
 
+    Raises:
+        Exception : If the parameter is not a 64 bits integer.
+
     Returns:
         string, string : Strings representing the binary content of the R16 and L16 registers.
     '''
@@ -282,7 +307,59 @@ def get_R16_L16(cipher):
 
     bin_cipher = bin(int(cipher, 16))[2:].zfill(32)
 
-    inv = inv_perm(bin_cipher)
-    R16 = inv[:33]
-    L16 = inv[33:64]
+    rev = initial_perm(bin_cipher)
+    R16 = rev[:32]
+    L16 = rev[32:64]
     return R16, L16
+
+
+def calculate_S(SBox, input):
+    '''
+    Calculates the output of an Sbox.
+
+    Args:
+        Sbox (int[]) : The DES Sbox table to use.
+        input (string) : A string representing a 6 bits integer in binary (without the 0b).
+
+    Raises:
+        Exception : If the input does not represent a 6 bits integer.
+
+    Returns:
+        string : A string representing the binary value obtained when applying the input to the Sbox.
+    '''
+    if len(input) != 6:
+        raise Exception('The parameter must be a 6 bits integer. Provided was a ' + str(len(input)) + ' bits value.')
+    
+    row = 2 * int(input[0], 2) + int(input[5], 2)
+    col = int(input[1:5], 2)
+    return bin(SBox[row][col])[2:].zfill(4)
+
+
+def exhaustive_attack_sbox(Sbox, input, expected):
+    '''
+    Performs an exhaustive search of the possible K16 bits associated to the Sbox.
+
+    Args:
+        Sbox(int[]) : The Sbox we are attacking.
+        input (string) : The 6 bits input of the Sbox (must correspond to E(R15))
+        expected (string) : The expected output of the Sbox.
+    
+    Raises:
+        Exception : If input is not a 6 bits integer or expected is not a 4 bits integer.
+
+    Returns:
+        string[] : The list of possible K16 portions.
+    '''
+    if len(input) != 6:
+        raise Exception('The parameter must be a 6 bits integer. Provided was a ' + str(len(input)) + ' bits value.')
+    if len(expected) != 4:
+        raise Exception('The parameter must be a 4 bits integer. Provided was a ' + str(len(input)) + ' bits value.')
+    
+    res = []
+    for i in range(16):
+        bin_i = bin(i)[2:].zfill(6)
+        out = calculate_S(Sbox, xor(input, bin_i))
+        if out == expected:
+            res.append(bin_i)
+    
+    return res
