@@ -53,4 +53,4 @@ def K16_recovery():
         K16 += part[0]
     return K16
 
-K16_recovery()
+#print(K16_recovery())
