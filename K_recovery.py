@@ -1,4 +1,4 @@
-﻿import time
+﻿#import time
 from sys import path_importer_cache
 from bs4 import BeautifulSoup
 import requests
@@ -141,7 +141,7 @@ def recover_K(K16):
     print("No key value found")
         
 
-begin = time.time()
+#begin = time.time()
 recover_K(K16_recovery.K16_recovery())
-end = time.time()
-print(end - begin)
+#end = time.time()
+#print(end - begin)

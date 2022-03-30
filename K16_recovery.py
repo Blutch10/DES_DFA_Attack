@@ -2,7 +2,7 @@ from utils import *
 
 def K16_recovery():
     '''
-    Recover the K16 subkey.
+    Recovers the K16 subkey.
 
     @Returns:
         (string) : The K16 binary string (without 0b)
