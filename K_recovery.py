@@ -1,8 +1,6 @@
-﻿#import time
-from sys import path_importer_cache
-from bs4 import BeautifulSoup
+﻿from bs4 import BeautifulSoup
 import requests
-from utils import PC1, PC2
+from utils import PC1, PC2, plaintext, cipher_corr
 import K16_recovery
 
 
@@ -114,11 +112,11 @@ def recover_K(K16):
         string : The binary representation of K (the master key) without the 0b.
     '''
     K = rev_PC2(K16)                                    # The master key we are reconstructing
-    expected_output = 'E99D5D8CBF37F4DF'                # The correct plaintext
+    expected_output = str(plaintext)[2:].upper()        # The correct plaintext
     
     # The parameters for the URL
     iv = '&iv=0000000000000000'
-    input = '&input=B68222FAB437421A'                   # The correct ciphertext
+    input = '&input=' + str(cipher_corr)[2:].upper()    # The correct ciphertext
     mode = '&mode=ecb'
     action = '&action=Decrypt'
     output = '&output='
@@ -141,7 +139,4 @@ def recover_K(K16):
     print("No key value found")
         
 
-#begin = time.time()
 recover_K(K16_recovery.K16_recovery())
-#end = time.time()
-#print(end - begin)
